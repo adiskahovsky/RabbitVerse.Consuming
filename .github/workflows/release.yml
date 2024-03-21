@@ -15,7 +15,7 @@ jobs:
       uses: actions/setup-dotnet@v1
     - name: Determine version from tag
       id: extract_version
-      run: echo "::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}"
+      run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
     - name: Build
       run: dotnet build src/RabbitVerse.Consuming/RabbitVerse.Consuming.csproj -c Release
     - name: Pack nugets
@@ -23,4 +23,4 @@ jobs:
     - name: Push to NuGet
       run: dotnet nuget push "*.nupkg" --api-key ${{secrets.nuget_api_key}} --source https://api.nuget.org/v3/index.json
       env:
-        NUGET_VERSION: ${{ steps.extract_version.outputs.VERSION }}
+        NUGET_VERSION: ${{ env.VERSION }}
