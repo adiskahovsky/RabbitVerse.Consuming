@@ -1,18 +1,16 @@
 using System;
 
-namespace RabbitVerse.Consuming
+namespace RabbitVerse.Consuming.DTO
 {
     public class ConsumerInfo
     {
-        public ConsumerInfo(IConsumer consumer, string exchange, TimeSpan? retry)
+        public ConsumerInfo(IConsumer consumer, string exchange)
         {
             Consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
             Exchange = exchange ?? throw new ArgumentNullException(nameof(exchange));
-            Retry = retry;
         }
 
         public IConsumer Consumer { get; }
-        public TimeSpan? Retry { get; }
         public string Exchange { get; }
 
         public override int GetHashCode()

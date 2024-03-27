@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using RabbitVerse.Consuming.DTO;
 
 namespace RabbitVerse.Consuming
 {
