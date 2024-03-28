@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using RabbitVerse.Consuming.Models.Contract.Provider;
 using RabbitVerse.Consuming.DTO;
 using RabbitVerse.Consuming.Logic.Models;
+using RabbitVerse.Consuming.Contract;
 
 namespace RabbitVerse.Consuming
 {
@@ -20,22 +20,24 @@ namespace RabbitVerse.Consuming
 
         private readonly IConsumingProviderFactory _factory;
 
+        private readonly IEndpointsProvider _endpointsProvider;
+
         private readonly ConcurrentDictionary<string, (List<IRetry> onceRetries, InfinityRetry? infinityRetry)> _retriesRouting = new ConcurrentDictionary<string, (List<IRetry> onceRetries, InfinityRetry? infinityRetry)>();
 
-        public Consuming(string name, ConnectionFactory connectionFactory, IConsumingProviderFactory factory)
+        public Consuming(string name, ConnectionFactory connectionFactory, IConsumingProviderFactory factory, IEndpointsProvider endpointsProvider)
         {
             _name = name;
             _connectionFactory = connectionFactory;
             _factory = factory;
+            _endpointsProvider = endpointsProvider;
         }
 
-        public async Task Start(bool recreate)
+        public Task Start(bool recreate)
         {
             using var connection = _connectionFactory.CreateConnection();
             var channel = connection.CreateModel();
 
-            using var provider = _factory.StartScope();
-            var endpoints = provider.GetEndpoinds();
+            var endpoints = _endpointsProvider.GetEndpoinds();
 
             foreach (var endpoint in endpoints)
             {
@@ -73,6 +75,8 @@ namespace RabbitVerse.Consuming
                                 var message = Encoding.UTF8.GetString(body);
 
                                 var consumerInfo = scope.GetConsumerInfo(endpoint);
+                                if (consumerInfo == null)
+                                    throw new Exception($"No consumer info provided for: {endpoint.Exchange}");
 
                                 var payload = JsonSerializer.Deserialize(message, consumerInfo.Consumer.PayloadType);
 
@@ -129,7 +133,7 @@ namespace RabbitVerse.Consuming
             }
 
             var completionSource = new TaskCompletionSource<bool>();
-            await completionSource.Task;
+            return completionSource.Task;
         }
 
         private (List<IRetry>, InfinityRetry?) CreateRetriesEntities(IModel channel, bool recreate, Endpoint endpoint, string mainExchangeName, string mainQueueName)

@@ -8,7 +8,5 @@ namespace RabbitVerse.Consuming
     {
 
         ConsumerInfo GetConsumerInfo(Endpoint endpoint);
-
-        HashSet<Endpoint> GetEndpoinds();
     }
 }
