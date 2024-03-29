@@ -32,7 +32,7 @@ namespace RabbitVerse.Consuming
             _endpointsProvider = endpointsProvider;
         }
 
-        public Task Start(bool recreate)
+        public async Task Start(bool recreate)
         {
             using var connection = _connectionFactory.CreateConnection();
             var channel = connection.CreateModel();
@@ -133,7 +133,7 @@ namespace RabbitVerse.Consuming
             }
 
             var completionSource = new TaskCompletionSource<bool>();
-            return completionSource.Task;
+            await completionSource.Task;
         }
 
         private (List<IRetry>, InfinityRetry?) CreateRetriesEntities(IModel channel, bool recreate, Endpoint endpoint, string mainExchangeName, string mainQueueName)
